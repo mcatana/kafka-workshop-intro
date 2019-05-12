@@ -66,7 +66,7 @@ public class WordsFilterApp {
                 //split by space
                 .flatMapValues(value-> Arrays.asList(value.toLowerCase().split("\\s+")))
                 //filter words that start with 'a'
-                .filter((key,value)-> (value.toString().startsWith("a")));
+                .filter((key,value)-> value.toString().startsWith("a"));
         filteredStream.to("words-filtered", Produced.with(Serdes.String(), Serdes.String()));
         //print the output of the filtered stream in the console
         filteredStream.print(Printed.toSysOut());

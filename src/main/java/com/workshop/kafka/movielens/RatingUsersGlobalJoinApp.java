@@ -16,6 +16,18 @@ import org.apache.kafka.streams.kstream.Produced;
 
 import java.util.Properties;
 
+/**
+ * Join Ratings (KStream) and Users (KGlobalTable)
+ *
+ * Notes:
+ *
+ * Before running this app:
+ * - Change prefix property in config.properties.
+ *   It will be used to create a unique application id for the Kafka cluster
+ *
+ * - Make sure you have the input topics in format avro: users_avro, ratings_avro
+ * - TODO - maria - create output topic ratings_join_global
+ */
 public class RatingUsersGlobalJoinApp {
     public static void main(String[] args) {
         final Properties props = new Properties();
@@ -32,18 +44,15 @@ public class RatingUsersGlobalJoinApp {
         //join ratings and users
 
         //global ktable for users - replicated on each instance
-        GlobalKTable<String, GenericRecord> usersGlobalTable = builder.globalTable("users_avro2");
+        GlobalKTable<String, GenericRecord> usersGlobalTable = builder.globalTable("users_avro");
 
         //stream for ratings
-        KStream<String, GenericRecord> userRatingsStream = builder.stream("RATINGS_USER_STREAM_AVRO");
-
+        KStream<String, GenericRecord> userRatingsStream = builder.stream("ratings_avro");
         userRatingsStream.print(Printed.toSysOut());
 
         KStream<String, String> joinStream = userRatingsStream.join(usersGlobalTable,
                 (key, value) -> key, /* map from the (key, value) of this stream to the key of the GlobalKTable */
                 (rating, user) -> "Rating=" + rating + ",user=[" + user + "]");
-
-
         joinStream.print(Printed.toSysOut());
         joinStream.to("ratings_join", Produced.with(Serdes.String(), Serdes.String()));
 

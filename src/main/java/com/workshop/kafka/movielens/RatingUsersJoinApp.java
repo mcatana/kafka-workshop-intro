@@ -12,6 +12,19 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
 import java.util.Properties;
 
+/**
+ * Join Ratings (KStream) and Users (KTable)
+ *
+ * Notes:
+ *
+ * Before running this app:
+ * - Change prefix property in config.properties.
+ *   It will be used to create a unique application id for the Kafka cluster
+ *
+ * - Make sure you have the input topics in format avro: users_avro, ratings_avro
+ * - TODO - maria - create output topic ratings_join
+ */
+
 public class RatingUsersJoinApp {
     public static void main(String[] args) {
         final Properties props = new Properties();
@@ -25,19 +38,21 @@ public class RatingUsersJoinApp {
 
         final StreamsBuilder builder = new StreamsBuilder();
 
-        //join ratings and users
-        KTable<String, GenericRecord> usersTable = builder.table("users_avro2",
+        //table for users
+        KTable<String, GenericRecord> usersTable = builder.table("users_avro",
                 Consumed.with(Topology.AutoOffsetReset.EARLIEST));
 
         //stream for ratings
-        KStream<String, GenericRecord> userRatingsStream = builder.stream("RATINGS_USER_STREAM_AVRO");
-
+        KStream<String, GenericRecord> userRatingsStream = builder.stream("ratings_avro");
         userRatingsStream.print(Printed.toSysOut());
-        //change key to RUID
-//        KStream<String, GenericRecord> userRatingsStreamKey = userRatingsStream.map(
-//                (key, record) -> KeyValue.pair(record.get("RUID").toString(),record));
 
-        KStream<String, String> joinStream = userRatingsStream.join(usersTable,
+        //ratings - change key to ruid
+        KStream<String, GenericRecord> userRatingsStreamKey = userRatingsStream.map(
+              (key, record) -> KeyValue.pair(record.get("ruid").toString(),record));
+        userRatingsStreamKey.print(Printed.toSysOut());
+
+        //join ratings and users (by key userid)
+        KStream<String, String> joinStream = userRatingsStreamKey.join(usersTable,
                 (rating, user) -> "Rating=" + rating + ",user=[" + user + "]");
 
 

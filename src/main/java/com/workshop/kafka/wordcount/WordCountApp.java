@@ -81,6 +81,15 @@ public class WordCountApp {
             e.printStackTrace();
         }
 
+        //TODO - test only
+        streams.setStateListener(((newState, oldState) -> {
+            if (newState == KafkaStreams.State.RUNNING && oldState == KafkaStreams.State.REBALANCING) {
+
+            } else if (newState != KafkaStreams.State.RUNNING) {
+
+            }})
+        );
+
         ReadOnlyKeyValueStore<String, Long> keyValueStore =
                 streams.store("word-count", QueryableStoreTypes.keyValueStore());
 
