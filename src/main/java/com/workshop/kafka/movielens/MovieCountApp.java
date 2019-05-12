@@ -31,7 +31,7 @@ public class MovieCountApp {
 
         final StreamsBuilder builder = new StreamsBuilder();
 
-        final KStream<String, GenericRecord> moviesStream = builder.stream("movies_avro2");
+        final KStream<String, GenericRecord> moviesStream = builder.stream("movies_avro");
         moviesStream.print(Printed.toSysOut());
         final KTable<String, Long> countMovies = moviesStream
               .groupBy((key, record) -> record.get("YEAR").toString())

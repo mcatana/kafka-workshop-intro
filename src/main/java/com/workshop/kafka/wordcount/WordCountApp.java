@@ -32,6 +32,8 @@ import java.util.ResourceBundle;
  * # Output topic
  *   ./bin/kafka-topics --create \
  *           --zookeeper localhost:2181 \
+ *           --config cleanup.policy=compact \
+ * 	         --config segment.ms=100 \
  *           --replication-factor 1 \
  *           --partitions 2 \
  *           --topic word-count-output

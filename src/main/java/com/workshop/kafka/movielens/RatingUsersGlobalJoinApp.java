@@ -38,9 +38,6 @@ public class RatingUsersGlobalJoinApp {
         KStream<String, GenericRecord> userRatingsStream = builder.stream("RATINGS_USER_STREAM_AVRO");
 
         userRatingsStream.print(Printed.toSysOut());
-        //change key to RUID
-//        KStream<String, GenericRecord> userRatingsStreamKey = userRatingsStream.map(
-//                (key, record) -> KeyValue.pair(record.get("RUID").toString(),record));
 
         KStream<String, String> joinStream = userRatingsStream.join(usersGlobalTable,
                 (key, value) -> key, /* map from the (key, value) of this stream to the key of the GlobalKTable */

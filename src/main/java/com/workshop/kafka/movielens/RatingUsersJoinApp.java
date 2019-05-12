@@ -26,8 +26,6 @@ public class RatingUsersJoinApp {
         final StreamsBuilder builder = new StreamsBuilder();
 
         //join ratings and users
-
-        //global ktable for users - replicated on each instance
         KTable<String, GenericRecord> usersTable = builder.table("users_avro2",
                 Consumed.with(Topology.AutoOffsetReset.EARLIEST));
 
