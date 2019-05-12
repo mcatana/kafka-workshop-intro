@@ -26,18 +26,16 @@ public class MovieFilterAvro {
 
         final StreamsBuilder builder = new StreamsBuilder();
 
-        final KStream<String, GenericRecord> moviesStream = builder.stream("movies_avro3");
+        final KStream<String, GenericRecord> moviesStream = builder.stream("movies3");
         moviesStream.print(Printed.toSysOut());
         final KStream<String, GenericRecord> filteredMovies = moviesStream.filter((key, record) ->
                record.get("TITLE").toString().toLowerCase().startsWith("b")
         );
 
-        System.out.println("Filtered");
         filteredMovies.print(Printed.toSysOut());
         Topology topology = builder.build();
         final KafkaStreams streams = new KafkaStreams(topology, props);
         System.out.println(topology.describe());
-        //streams.cleanUp();
         streams.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));

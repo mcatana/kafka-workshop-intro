@@ -43,12 +43,7 @@ public class MovieRatingCountApp {
         System.out.println(topology.describe());
         streams.start();
 
+        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
 
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }

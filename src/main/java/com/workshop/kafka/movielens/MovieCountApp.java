@@ -43,35 +43,6 @@ public class MovieCountApp {
         System.out.println(topology.describe());
         streams.start();
 
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        ReadOnlyKeyValueStore<String, Long> keyValueStore =
-                streams.store("movie-count", QueryableStoreTypes.keyValueStore());
-
-        while (true) {
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            printAllValues(keyValueStore);
-        }
-
-
-
-       // Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
-    }
-
-
-    private static void printAllValues(ReadOnlyKeyValueStore<String, Long> keyValueStore){
-        //Get the values for all of the keys available in this application instance
-        KeyValueIterator<String, Long> range = keyValueStore.all();
-        while (range.hasNext()) {
-            KeyValue<String, Long> next = range.next();
-            System.out.println("count for " + next.key + ": " + next.value);
-        }
+        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 }

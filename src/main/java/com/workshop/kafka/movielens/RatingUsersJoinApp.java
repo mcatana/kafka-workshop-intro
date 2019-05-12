@@ -28,7 +28,8 @@ public class RatingUsersJoinApp {
         //join ratings and users
 
         //global ktable for users - replicated on each instance
-        GlobalKTable<String, GenericRecord> usersGlobalTable = builder.globalTable("users_avro2");
+        KTable<String, GenericRecord> usersTable = builder.table("users_avro2",
+                Consumed.with(Topology.AutoOffsetReset.EARLIEST));
 
         //stream for ratings
         KStream<String, GenericRecord> userRatingsStream = builder.stream("RATINGS_USER_STREAM_AVRO");
@@ -38,15 +39,11 @@ public class RatingUsersJoinApp {
 //        KStream<String, GenericRecord> userRatingsStreamKey = userRatingsStream.map(
 //                (key, record) -> KeyValue.pair(record.get("RUID").toString(),record));
 
-
-
-        KStream<String, String> joinStream = userRatingsStream.join(usersGlobalTable,
-                (key, value) -> key, /* map from the (key, value) of this stream to the key of the GlobalKTable */
+        KStream<String, String> joinStream = userRatingsStream.join(usersTable,
                 (rating, user) -> "Rating=" + rating + ",user=[" + user + "]");
 
 
         joinStream.print(Printed.toSysOut());
-////
         joinStream.to("ratings_join", Produced.with(Serdes.String(), Serdes.String()));
 
 
@@ -55,16 +52,7 @@ public class RatingUsersJoinApp {
         System.out.println(topology.describe());
         streams.start();
 
-
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
-        // Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
+        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 
 

@@ -10,36 +10,66 @@ import org.apache.kafka.streams.state.*;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Properties;
-import java.util.concurrent.CountDownLatch;
-
+import java.util.ResourceBundle;
+/**
+ * Word count - stateful query example using Kafka Streams DSL
+ * Before running this app you must:
+ * 1. Modify in config.properties:
+ *    - host and port for your Kafka cluster
+ *    bootstrapServer=hostname:port
+ *
+ *    - application prefix to be used when creating the application id
+ *
+ * 2. Create input and output topic (if not already created):
+ *
+ * #Input topic
+ * 		  ./bin/kafka-topics --create \
+ *           --zookeeper localhost:2181 \
+ *           --replication-factor 1 \
+ *           --partitions 2 \
+ *           --topic words-input
+ *
+ * # Output topic
+ *   ./bin/kafka-topics --create \
+ *           --zookeeper localhost:2181 \
+ *           --replication-factor 1 \
+ *           --partitions 2 \
+ *           --topic word-count-output
+ */
 public class WordCountApp {
+
+    private static ResourceBundle rb = ResourceBundle.getBundle("config");
+
     public static void main(String[] args) {
+
+        final String bootstrapServer = rb.getString("bootstrapServer");
+        final String applicationId = rb.getString("prefix") + "-wordcount-app";
+
+        System.out.println("Starting app id: " + applicationId + ", bootstrapServer: " + bootstrapServer);
         final Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "wordcount-app-key2");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 0);
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(StreamsConfig.STATE_DIR_CONFIG, "F:\\BigData\\Kafka\\Projects\\statestore");
-
         final StreamsBuilder builder = new StreamsBuilder();
 
-        final KStream<String, String> source = builder.stream("words_input");
+        final KStream<String, String> source = builder.stream("words-input");
         final KGroupedStream<String, String> groupedStream = source
                 .flatMapValues(value -> Arrays.asList(value.toLowerCase(Locale.getDefault()).split("\\s+")))
                 .selectKey((key, word) -> word)
                 .groupByKey();
 
-        KTable<String, Long> countWords = groupedStream.count(Materialized.<String, Long, KeyValueStore<Bytes, byte[]>>as("word-count-new")
+        KTable<String, Long> countWords = groupedStream.count(Materialized.<String, Long, KeyValueStore<Bytes, byte[]>>as("word-count")
                 .withValueSerde(Serdes.Long()));
-        countWords.toStream().print(Printed.toSysOut());
-        countWords.toStream().to("words_output", Produced.with(Serdes.String(), Serdes.Long()));
 
-
+        KStream<String, Long> streamCounts = countWords.toStream();
+        streamCounts.print(Printed.toSysOut());
+        streamCounts.to("word-count-output", Produced.with(Serdes.String(), Serdes.Long()));
 
         Topology topology = builder.build();
         final KafkaStreams streams = new KafkaStreams(topology, props);
+        //print created topology
         System.out.println(topology.describe());
         streams.start();
 
@@ -49,25 +79,20 @@ public class WordCountApp {
             e.printStackTrace();
         }
 
-
-
-
         ReadOnlyKeyValueStore<String, Long> keyValueStore =
-                streams.store("word-count-new", QueryableStoreTypes.keyValueStore());
-
+                streams.store("word-count", QueryableStoreTypes.keyValueStore());
 
 
         while (true) {
             // Get value by key
-            System.out.println("count for alice:" + keyValueStore.get("alice"));
-            System.out.println("count for wonder:" + keyValueStore.get("wonder"));
+            System.out.println("State store local values - count for test:" + keyValueStore.get("test"));
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            System.out.println("all-values");
+            System.out.println("State store local values: ");
             printAllValues(keyValueStore);
 
         }
