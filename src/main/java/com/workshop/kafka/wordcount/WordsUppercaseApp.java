@@ -30,37 +30,38 @@ import java.util.ResourceBundle;
  *           --zookeeper localhost:2181 \
  *           --replication-factor 1 \
  *           --partitions 2 \
- *           --topic words-input
+ *           --topic prefix-words-input
  *
  * # Output topic
  *   ./bin/kafka-topics --create \
  *           --zookeeper localhost:2181 \
  *           --replication-factor 1 \
  *           --partitions 2 \
- *           --topic words-uppercase
+ *           --topic prefix-words-uppercase
  */
 public class WordsUppercaseApp {
     private static ResourceBundle rb = ResourceBundle.getBundle("config");
 
     public static void main(String[] args) {
         final String bootstrapServer = rb.getString("bootstrapServer");
-        final String applicationId = rb.getString("prefix") + "-words-filter-app";
+        final String configPrefix =  rb.getString("prefix");
 
-        System.out.println("Starting app id: " + applicationId + ", bootstrapServer: " + bootstrapServer);
+        System.out.println("Starting app - configPrefix: " + configPrefix + ", bootstrapServer: " + bootstrapServer);
 
         final Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, configPrefix+"-words-uppercase-app");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
 
         final StreamsBuilder builder = new StreamsBuilder();
-        final KStream<String, String> sourceStream = builder.stream("words-input");
+        final KStream<String, String> sourceStream = builder.stream(configPrefix  + "-words-input");
         final KStream<String,String> filteredStream = sourceStream
                 //uppercase, split by space
                 .flatMapValues(value-> Arrays.asList(value.toUpperCase().split("\\s+")));
-        filteredStream.to("words-uppercase", Produced.with(Serdes.String(), Serdes.String()));
+
+        filteredStream.to(configPrefix + "-words-uppercase", Produced.with(Serdes.String(), Serdes.String()));
         //print the output of the filtered stream in the console
         filteredStream.print(Printed.toSysOut());
         Topology topology = builder.build();

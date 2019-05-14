@@ -27,7 +27,7 @@ import java.util.ResourceBundle;
  *           --zookeeper localhost:2181 \
  *           --replication-factor 1 \
  *           --partitions 2 \
- *           --topic words-input
+ *           --topic prefix-words-input
  *
  * # Output topic
  *   ./bin/kafka-topics --create \
@@ -36,7 +36,7 @@ import java.util.ResourceBundle;
  * 	         --config segment.ms=100 \
  *           --replication-factor 1 \
  *           --partitions 2 \
- *           --topic word-count-output
+ *           --topic prefix-wordcount-output
  */
 public class WordCountApp {
 
@@ -44,19 +44,21 @@ public class WordCountApp {
 
     public static void main(String[] args) {
 
-        final String bootstrapServer = rb.getString("bootstrapServer");
-        final String applicationId = rb.getString("prefix") + "-wordcount-app";
 
-        System.out.println("Starting app id: " + applicationId + ", bootstrapServer: " + bootstrapServer);
+        final String bootstrapServer = rb.getString("bootstrapServer");
+        final String configPrefix =  rb.getString("prefix");
+
+        System.out.println("Starting app - configPrefix: " + configPrefix + ", bootstrapServer: " + bootstrapServer);
+
         final Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, configPrefix + "-wordcount-app");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         final StreamsBuilder builder = new StreamsBuilder();
 
-        final KStream<String, String> source = builder.stream("words-input");
+        final KStream<String, String> source = builder.stream(configPrefix+"-words-input");
         final KGroupedStream<String, String> groupedStream = source
                 .flatMapValues(value -> Arrays.asList(value.toLowerCase(Locale.getDefault()).split("\\s+")))
                 .selectKey((key, word) -> word)
@@ -67,7 +69,7 @@ public class WordCountApp {
 
         KStream<String, Long> streamCounts = countWords.toStream();
         streamCounts.print(Printed.toSysOut());
-        streamCounts.to("word-count-output", Produced.with(Serdes.String(), Serdes.Long()));
+        streamCounts.to(configPrefix+ "-wordcount-output", Produced.with(Serdes.String(), Serdes.Long()));
 
         Topology topology = builder.build();
         final KafkaStreams streams = new KafkaStreams(topology, props);
@@ -80,15 +82,6 @@ public class WordCountApp {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        //TODO - test only
-        streams.setStateListener(((newState, oldState) -> {
-            if (newState == KafkaStreams.State.RUNNING && oldState == KafkaStreams.State.REBALANCING) {
-
-            } else if (newState != KafkaStreams.State.RUNNING) {
-
-            }})
-        );
 
         ReadOnlyKeyValueStore<String, Long> keyValueStore =
                 streams.store("word-count", QueryableStoreTypes.keyValueStore());
