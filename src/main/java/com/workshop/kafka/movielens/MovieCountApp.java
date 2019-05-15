@@ -27,19 +27,22 @@ import java.util.ResourceBundle;
  *   It will be used to create a unique application id for the Kafka cluster
  *
  * - Make sure you have a topic in format avro: movies_avro
- * - Create output topic - TODO maria - unique topic name here
+ * - Create output topic: prefix-movie-count-year
  */
 public class MovieCountApp {
     private static ResourceBundle rb = ResourceBundle.getBundle("config");
 
     public static void main(String[] args) {
         final String bootstrapServer = rb.getString("bootstrapServer");
+        final String configPrefix =  rb.getString("prefix");
+        final String schemaRegistry = rb.getString("schemaRegistry");
         final String applicationId = rb.getString("prefix") + "-movie-count-year-app";
+        System.out.println("Starting app - configPrefix: " + configPrefix + ", bootstrapServer: " + bootstrapServer);
 
         final Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
-        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
+        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistry);
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, GenericAvroSerde.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -52,12 +55,14 @@ public class MovieCountApp {
               .groupBy((key, record) -> record.get("YEAR").toString()).count();
 
         countMovies.toStream().print(Printed.toSysOut());
+        countMovies.toStream().to(configPrefix+"-movie-count-year");
         Topology topology = builder.build();
         final KafkaStreams streams = new KafkaStreams(topology, props);
+
+        //print the created topology
         System.out.println(topology.describe());
         streams.start();
 
-        //TODO - maria - add to output topic
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 }

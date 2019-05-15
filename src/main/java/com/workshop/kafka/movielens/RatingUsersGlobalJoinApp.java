@@ -26,7 +26,6 @@ import java.util.Properties;
  *   It will be used to create a unique application id for the Kafka cluster
  *
  * - Make sure you have the input topics in format avro: users_avro, ratings_avro
- * - TODO - maria - create output topic ratings_join_global
  */
 public class RatingUsersGlobalJoinApp {
     public static void main(String[] args) {
@@ -41,8 +40,6 @@ public class RatingUsersGlobalJoinApp {
 
         final StreamsBuilder builder = new StreamsBuilder();
 
-        //join ratings and users
-
         //global ktable for users - replicated on each instance
         GlobalKTable<String, GenericRecord> usersGlobalTable = builder.globalTable("users_avro");
 
@@ -54,8 +51,6 @@ public class RatingUsersGlobalJoinApp {
                 (key, value) -> key, /* map from the (key, value) of this stream to the key of the GlobalKTable */
                 (rating, user) -> "Rating=" + rating + ",user=[" + user + "]");
         joinStream.print(Printed.toSysOut());
-        joinStream.to("ratings_join", Produced.with(Serdes.String(), Serdes.String()));
-
 
         Topology topology = builder.build();
         final KafkaStreams streams = new KafkaStreams(topology, props);

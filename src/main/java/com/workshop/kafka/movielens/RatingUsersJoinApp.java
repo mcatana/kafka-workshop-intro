@@ -11,6 +11,7 @@ import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 /**
  * Join Ratings (KStream) and Users (KTable)
@@ -22,15 +23,23 @@ import java.util.Properties;
  *   It will be used to create a unique application id for the Kafka cluster
  *
  * - Make sure you have the input topics in format avro: users_avro, ratings_avro
- * - TODO - maria - create output topic ratings_join
+ * - Create output topic: prefix-ratings-join
  */
 
 public class RatingUsersJoinApp {
+    private static ResourceBundle rb = ResourceBundle.getBundle("config");
+
     public static void main(String[] args) {
+        final String bootstrapServer = rb.getString("bootstrapServer");
+        final String configPrefix =  rb.getString("prefix");
+        final String schemaRegistry = rb.getString("schemaRegistry");
+        final String applicationId = rb.getString("prefix") + "-rating-user-join-app";
+        System.out.println("Starting app - configPrefix: " + configPrefix + ", bootstrapServer: " + bootstrapServer);
+
         final Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "rating-user-join-app");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistry);
         props.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 0);
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, GenericAvroSerde.class);
@@ -57,7 +66,7 @@ public class RatingUsersJoinApp {
 
 
         joinStream.print(Printed.toSysOut());
-        joinStream.to("ratings_join", Produced.with(Serdes.String(), Serdes.String()));
+        joinStream.to(configPrefix+"-ratings-join", Produced.with(Serdes.String(), Serdes.String()));
 
 
         Topology topology = builder.build();
