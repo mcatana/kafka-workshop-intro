@@ -7,10 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.*;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.kstream.Printed;
+import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
@@ -55,7 +52,7 @@ public class MovieCountApp {
               .groupBy((key, record) -> record.get("YEAR").toString()).count();
 
         countMovies.toStream().print(Printed.toSysOut());
-        countMovies.toStream().to(configPrefix+"-movie-count-year");
+        countMovies.toStream().to(configPrefix+"-movie-count-year", Produced.with(Serdes.String(), Serdes.Long()));
         Topology topology = builder.build();
         final KafkaStreams streams = new KafkaStreams(topology, props);
 

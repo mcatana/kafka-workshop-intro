@@ -110,6 +110,8 @@ prefix-movie-count-year (change the prefix to the one you added in config.proper
 
       ./bin/kafka-topics --create \
                 --zookeeper localhost:2181 \
+                --config cleanup.policy=compact \
+                --config segment.ms=100 \
                 --replication-factor 1 \
                 --partitions 2 \
                 --topic prefix-movie-count-year
@@ -117,9 +119,14 @@ prefix-movie-count-year (change the prefix to the one you added in config.proper
 - consume from output topic:
 
 
-    ./bin/kafka-avro-console-consumer
-        --bootstrap-server localhost:9092
-        --topic prefix-movie-count-year
+      ./bin/kafka-console-consumer --bootstrap-server localhost:9092 \
+              --topic prefix-movie-count-year \
+              --from-beginning \
+              --formatter kafka.tools.DefaultMessageFormatter \
+              --property print.key=true \
+              --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+              --property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer
+
 
 
 
