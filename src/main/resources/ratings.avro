@@ -1,0 +1,52 @@
+{"namespace": "movielens",
+ "type": "record",
+ "name": "rating",
+ "fields": [
+   {
+     "name": "ruid",
+     "type":
+       {
+         "type": "int",
+         "arg.properties": {
+           "range": { "min":1, "max":6040}
+         }
+       }
+   },
+   {
+     "name": "rmid",
+     "type":
+       {
+         "type": "int",
+         "arg.properties": {
+	    "range": { "min":1, "max":3952}
+         }
+       }
+   },
+   {
+     "name": "rating",
+     "type":
+     {
+       "type": "int",
+       "arg.properties":{
+         "range": {
+                    "min": 1,
+                    "max": 5
+                  }
+      }
+    }
+  },
+   {
+     "name": "timestamp",
+     "type":
+     {
+       "type": "long",
+       "arg.properties":{
+         "range": {
+                    "min": 1487715775521,
+                    "max": 1519273364600
+                  }
+      }
+    }
+   }
+ ]
+}
