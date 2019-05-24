@@ -33,17 +33,18 @@
  - In the wizard Import projects from Maven click Next, then:
 	 -  Select Maven project to import - select
    com.workshop.kafka:kafka-workshop:1.0-SNAPSHOT and click Next
-	   - Please select project SDK - select your Java 1.8 JDK home path and click Next
-	    -   Please enter a name to create a new ItelliJ IDEA project - default values are completed for project name and project file
+	 - Please select project SDK - select your Java 1.8 JDK home path and click Next
+	 - Please enter a name to create a new ItelliJ IDEA project - default values are completed for project name and project file
    location, click Finish.
 
-	  4.2. Intellij IDEA You can run each app in the following way:
+	  4.2. Intellij IDEA - you can run each app in the following way:
 
 	 - Select Run | Edit Configurations from the main menu
 	 - In the new window, from the toolbar click + (Add new configuration) and select Application
 	 - Specify the name in the Name field (ex WordsUppercase)
 	 - In the Main class - select the class you want to run and click ok
 	 - Apply the changes and close the dialog
+	 
 	  *Note*: If you want to run multiple instances of the same application, check "Allow running in parallel"
 
 
