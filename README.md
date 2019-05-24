@@ -1,5 +1,55 @@
 Introduction to Kafka Streams
 
+**Project setup**
+
+1. git clone https://github.com/mcatana/kafka-workshop-intro
+
+2. Build with Maven:
+
+  - cd /kafka-workshop-intro
+  - mvn clean install -Dcheckstyle.skip
+
+3. Import in Eclipse
+
+  3.1 Go to File | Import | Maven - Existing Maven Projects, hit Next.
+  	In the Root Directory - Browse to the directory where you have cloned the project (ex kafka-workshop-intro) and select it.
+  	Under the Root Directory, in the list of Projects /kafka-workshop-intro/pom.xml is by default selected. Click Finish.
+    The project will be visible in the left side. Select the project name, right click - Checkstyle - Deactivate checkstyle
+
+  3.2 How to run the applications
+
+  From the menu - Run | Run configurations | Add a new Java Application:
+    - Name field - add the name you want, ex WordsUppercase
+    - Project - kafka-workshop is already selected
+    - Main class - select the class you want to run, ex WordsUppercaseApp.
+    - Hit Apply
+    - You can now run the app from Run Configurations or from the toolbar | Run shortcut.
+
+
+
+
+
+4. Import in Intellij IDEA
+
+  4.1. Go to File - New - Project from existing sources.
+     In the File Explorer go to the path where you have the project (kafka-workshop-intro) and select pom.xml, click Ok.
+     In the wizard Import projects from Maven click Next, then:
+     - Select Maven project to import - select com.workshop.kafka:kafka-workshop:1.0-SNAPSHOT and click Next
+     - Please select project SDK - select your Java 1.8 JDK home path and click Next
+    - Please enter a name to create a new ItelliJ IDEA project - default values are completed for project name and project file location, click Finish
+
+  4.2. You can run each app in the following way:
+
+  - Select Run | Edit Configurations from the main menu
+  - In the new window, from the toolbar click + (Add new configuration) and select Application
+  - Specify the name in the Name field (ex WordsUppercase)
+  - In the Main class - select the class you want to run and click ok
+  - Apply the changes and close the dialog
+  Note: If you want to run multiple instances of the same application, check "Allow running in parallel"
+
+
+
+
 **Before running the examples:**
 
 You need to change the following properties in /resources/config.properties:
@@ -82,6 +132,7 @@ with the one you configured.**
 2. Movielens
 
 We will use topics in avro format: movies_avro, ratings_avro, users_avro.
+If not already created on your Kafka installation, check the movielensImport.md file for instructions.
 
 After changing the code, in order the reprocess the topic from the start, you must do an application reset.
 
@@ -145,7 +196,7 @@ prefix--ratings-by-movie-count
               --zookeeper localhost:2181 \
               --replication-factor 1 \
               --partitions 2 \
-              --topic prefix--ratings-by-movie-count
+              --topic prefix-ratings-by-movie-count
 
 
 2.4 RatingUsersJoinApp
