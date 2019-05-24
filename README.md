@@ -37,14 +37,14 @@
 	    -   Please enter a name to create a new ItelliJ IDEA project - default values are completed for project name and project file
    location, click Finish.
 
-  4.2. You can run each app in the following way:
+	  4.2. Intellij IDEA You can run each app in the following way:
 
- - Select Run | Edit Configurations from the main menu
- - In the new window, from the toolbar click + (Add new configuration) and select Application
- - Specify the name in the Name field (ex WordsUppercase)
- - In the Main class - select the class you want to run and click ok
- - Apply the changes and close the dialog
-  *Note*: If you want to run multiple instances of the same application, check "Allow running in parallel"
+	 - Select Run | Edit Configurations from the main menu
+	 - In the new window, from the toolbar click + (Add new configuration) and select Application
+	 - Specify the name in the Name field (ex WordsUppercase)
+	 - In the Main class - select the class you want to run and click ok
+	 - Apply the changes and close the dialog
+	  *Note*: If you want to run multiple instances of the same application, check "Allow running in parallel"
 
 
 
